@@ -1,0 +1,86 @@
+name: C++ and Python CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-cpp:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies (pthread is built-in)
+      run: sudo apt-get update && sudo apt-get install -y build-essential
+
+    - name: Compile C++ Load Balancer
+      run: |
+        mkdir -p cpp/bin
+        g++ -O3 -std=c++11 cpp/src/main.cpp cpp/src/load_balancer.cpp -o cpp/bin/simplelb -lpthread
+
+    - name: Test C++ LB compilation artifact
+      run: |
+        test -f cpp/bin/simplelb
+        chmod +x cpp/bin/simplelb
+
+  test-python:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-state: '3.11'
+
+    - name: Check Python Syntax (Compilation check)
+      run: |
+        python -m py_compile python/load_balancer.py
+        python -m py_compile tools/mock_backend.py
+        python -m py_compile tools/benchmark.py
+
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: [build-cpp, test-python]
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Compile C++ LB
+      run: g++ -O3 -std=c++11 cpp/src/main.cpp cpp/src/load_balancer.cpp -o cpp_lb -lpthread
+
+    - name: Run Integration Tests (Mock servers + Load Balancers + Benchmark)
+      run: |
+        # Start mock backends in background
+        python tools/mock_backend.py --ports 8081,8082,8083,8084 &
+        MOCK_PID=$!
+        sleep 2
+        
+        # Test C++ Load Balancer
+        ./cpp_lb --backends http://localhost:8081,http://localhost:8082,http://localhost:8083,http://localhost:8084 --port 3030 &
+        CPP_LB_PID=$!
+        sleep 2
+        
+        # Run benchmark against C++ LB
+        python tools/benchmark.py --url http://127.0.0.1:3030 --requests 100 --concurrency 5
+        
+        # Terminate C++ LB
+        kill $CPP_LB_PID
+        
+        # Test Python Load Balancer
+        python python/load_balancer.py --backends http://localhost:8081,http://localhost:8082,http://localhost:8083,http://localhost:8084 --port 3031 &
+        PY_LB_PID=$!
+        sleep 2
+        
+        # Run benchmark against Python LB
+        python tools/benchmark.py --url http://127.0.0.1:3031 --requests 100 --concurrency 5
+        
+        # Terminate Python LB and mock backends
+        kill $PY_LB_PID
+        kill $MOCK_PID

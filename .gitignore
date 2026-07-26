@@ -1,0 +1,29 @@
+# C++ Build Artifacts
+build/
+bin/
+*.exe
+*.o
+*.obj
+*.pdb
+*.ilk
+*.suo
+*.user
+CMakeCache.txt
+CMakeFiles/
+CMakeSettings.json
+Makefile
+cmake_install.cmake
+
+# Python Cache & Env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# OS Files
+.DS_Store
+Thumbs.db
