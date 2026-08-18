@@ -1,8 +1,8 @@
 # SimpleLB - Multi-Language Load Balancer Project
 
-Welcome to **SimpleLB**, a robust, educational multi-language L7 HTTP Load Balancer project featuring high-performance implementations in both **C++** and **Python**.
+Welcome to **SimpleLB**, a robust, educational multi-language L7 HTTP Load Balancer project featuring high-performance implementations in **Go**, **C++**, and **Python**.
 
-This repository is designed to demonstrate low-level systems programming (sockets, multithreading, concurrency) in C++ alongside modern asynchronous networking in Python.
+This repository is designed to demonstrate concurrent backend servers in Go, low-level socket systems programming and multithreading in C++, and modern asynchronous I/O multiplexing in Python.
 
 ---
 
@@ -17,6 +17,11 @@ simplelb/
 │   │   └── load_balancer.cpp # HTTP routing, active health checks, retry logic
 │   ├── CMakeLists.txt      # Cross-platform CMake configuration
 │   └── README.md           # C++ Specific setup guide
+├── go/
+│   ├── main.go             # High-performance concurrent Go implementation
+│   ├── go.mod              # Go module file
+│   ├── Dockerfile          # Multi-stage Docker builder for Go
+│   └── README.md           # Go Specific setup guide
 ├── python/
 │   ├── load_balancer.py    # Asynchronous L7 load balancer using asyncio
 │   └── README.md           # Python Specific setup guide
@@ -32,12 +37,12 @@ simplelb/
 
 ## Core Features & Logic
 
-Both the **C++** and **Python** implementations include the following features:
+All three (**Go**, **C++**, and **Python**) implementations share the same features:
 
 1. **Round-Robin Routing**: Distributes incoming HTTP requests in a cyclic, atomic manner across all healthy backend servers.
-2. **Active TCP Health Checks**: A background worker thread/task periodically connects to each backend to verify its health status (UP or DOWN), taking unhealthy servers out of rotation.
+2. **Active TCP Health Checks**: A background worker thread/task/goroutine periodically connects to each backend to verify its health status (UP or DOWN), taking unhealthy servers out of rotation.
 3. **Failover & Connection Retries**: If a selected backend fails to respond or accept a connection, the load balancer automatically flags it as DOWN and retries alternative backends up to 3 times before sending a `503 Service Unavailable` response to the client.
-4. **Zero-Dependencies**: Both versions require only standard compiler toolchains and built-in runtimes (no complex third-party library installations required).
+4. **Zero-Dependencies**: All versions require only standard compiler toolchains and built-in runtimes (no complex third-party library installations required).
 
 ---
 
@@ -68,6 +73,13 @@ Compile using any standard C++ compiler.
 Run the async load balancer with:
 ```bash
 python python/load_balancer.py --backends http://127.0.0.1:3031,http://127.0.0.1:3032,http://127.0.0.1:3033,http://127.0.0.1:3034 --port 3030
+```
+
+#### C. Go Load Balancer
+Run the Go load balancer with:
+```bash
+cd go
+go run main.go --backends http://127.0.0.1:3031,http://127.0.0.1:3032,http://127.0.0.1:3033,http://127.0.0.1:3034 --port 3030
 ```
 
 ---

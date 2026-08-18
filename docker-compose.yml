@@ -27,6 +27,19 @@ services:
       - web2
       - web3
 
+  lb-go:
+    build:
+      context: ./go
+      dockerfile: Dockerfile
+    container_name: lb-go
+    ports:
+      - "3032:3032"
+    command: --backends "http://web1:80,http://web2:80,http://web3:80" --port 3032
+    depends_on:
+      - web1
+      - web2
+      - web3
+
   web1:
     image: strm/helloworld-http
     container_name: web1
