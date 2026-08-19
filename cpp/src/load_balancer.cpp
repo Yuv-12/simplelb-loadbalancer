@@ -321,3 +321,37 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+
+/* main()
+  |
+  |-- Parse command-line arguments
+  |
+  |-- Create ServerPool
+  |
+  |-- Parse and add backend servers
+  |
+  |-- Start health-check thread
+  |
+  |-- socket()
+  |-- bind()
+  |-- listen()
+  |
+  |-- accept() client
+          |
+          ↓
+      Create thread
+          |
+          ↓
+   client_thread_runner()
+          |
+          ↓
+      handle_client()
+          |
+          ↓
+      ServerPool
+          |
+          ↓
+    Round Robin selection
+          |
+          ↓
+   Healthy Backend Server*/
