@@ -1,8 +1,10 @@
 # Stage 1: Build the C++ Load Balancer
 FROM gcc:12 AS builder
 WORKDIR /app
-COPY cpp/src/ ./cpp/src/
-RUN g++ -O3 -std=c++11 cpp/src/main.cpp cpp/src/load_balancer.cpp -o simplelb -lpthread
+COPY cpp/src/main.cpp ./
+COPY cpp/src/load_balancer.cpp ./
+COPY cpp/src/load_balancer.h ./
+RUN g++ -O3 -std=c++11 main.cpp load_balancer.cpp -o simplelb -lpthread
 
 # Stage 2: Final Runtime Environment (Python + compiled C++ binary)
 FROM python:3.11-slim
